@@ -6,7 +6,16 @@ from modules.ui_components import FormRow, FormColumn, FormGroup, ToolButton
 import json
 import os
 import random
+import sys
+
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+
+from expansion import FooocusExpansion
+
+
 stylespath = ""
+PROMPT_EXPANSION_NAME = "Prompt Expansion"
+prompt_expansion = None
 
 
 def get_json_content(file_path):
@@ -47,7 +56,13 @@ def getStyles():
     return styles
 
 
-def createPositive(style, positive):
+def createPositive(style, positive, seed=None):
+    if style == PROMPT_EXPANSION_NAME:
+        global prompt_expansion
+        if prompt_expansion is None:
+            prompt_expansion = FooocusExpansion()
+        return prompt_expansion(positive, seed)
+    
     json_data = get_json_content(stylespath)
     try:
         # Check if json_data is a list
@@ -162,8 +177,8 @@ class StyleSelectorXL(scripts.Script):
 
         if(batchCount == 1):
             # for each image in batch
-            for i, prompt in enumerate(p.all_prompts):
-                positivePrompt = createPositive(style, prompt)
+            for i, (prompt, seed) in enumerate(zip(p.all_prompts, p.all_seeds)):
+                positivePrompt = createPositive(style, prompt, seed=seed)
                 p.all_prompts[i] = positivePrompt
             for i, prompt in enumerate(p.all_negative_prompts):
                 negativePrompt = createNegative(style, prompt)
@@ -223,4 +238,8 @@ def on_ui_settings():
             section=section
             )
     )
+    
+    shared.opts.add_option("style_use_gpu", shared.OptionInfo(True, "Is Use GPU", gr.Checkbox, {"interactive": True}, section=section))
+    shared.opts.add_option("style_use_fp16", shared.OptionInfo(True, "Is Use FP16", gr.Checkbox, {"interactive": True}, section=section))
+
 script_callbacks.on_ui_settings(on_ui_settings)
