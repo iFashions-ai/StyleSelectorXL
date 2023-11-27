@@ -15,6 +15,7 @@ from expansion import FooocusExpansion
 
 stylespath = ""
 PROMPT_EXPANSION_NAME = "Prompt Expansion"
+DEFAULT_STYLE = "Enhance"
 prompt_expansion = None
 
 
@@ -53,6 +54,13 @@ def getStyles():
     stylespath = json_path
     json_data = get_json_content(json_path)
     styles = read_sdxl_styles(json_data)
+    
+    # # Move the PROMPT_EXPANSION_NAME to the top
+    # try:
+    #     styles.remove(PROMPT_EXPANSION_NAME)
+    # except ValueError:
+    #     pass
+    # styles.insert(0, PROMPT_EXPANSION_NAME)
     return styles
 
 
@@ -151,17 +159,17 @@ class StyleSelectorXL(scripts.Script):
                 with FormRow():
                     with FormColumn(min_width=160):
                         allstyles = gr.Checkbox(
-                            value=False, label="Generate All Styles In Order", info="To Generate Your Prompt in All Available Styles, Its Better to set batch count to " + str(len(self.styleNames)) + " ( Style Count)")
+                            visible=False, value=False, label="Generate All Styles In Order", info="To Generate Your Prompt in All Available Styles, Its Better to set batch count to " + str(len(self.styleNames)) + " ( Style Count)")
 
                 style_ui_type = shared.opts.data.get(
                     "styles_ui",  "radio-buttons")
 
                 if style_ui_type == "select-list":
                     style = gr.Dropdown(
-                        self.styleNames, value='base', multiselect=False, label="Select Style")
+                        self.styleNames, value=DEFAULT_STYLE, multiselect=False, label="Select Style")
                 else:
                     style = gr.Radio(
-                        label='Style', choices=self.styleNames, value='base')
+                        label='Style', choices=self.styleNames, value=DEFAULT_STYLE)
 
         # Ignore the error if the attribute is not present
 
@@ -193,9 +201,9 @@ class StyleSelectorXL(scripts.Script):
                 if(allstyles):
                     styles[i] = self.styleNames[i % len(self.styleNames)]
             # for each image in batch
-            for i, prompt in enumerate(p.all_prompts):
+            for i, (prompt, seed) in enumerate(zip(p.all_prompts, p.all_seeds)):
                 positivePrompt = createPositive(
-                    styles[i] if randomizeEach or allstyles else styles[0], prompt)
+                    styles[i] if randomizeEach or allstyles else styles[0], prompt, seed=seed)
                 p.all_prompts[i] = positivePrompt
             for i, prompt in enumerate(p.all_negative_prompts):
                 negativePrompt = createNegative(
