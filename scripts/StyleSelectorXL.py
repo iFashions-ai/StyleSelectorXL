@@ -15,7 +15,7 @@ from expansion import FooocusExpansion
 
 stylespath = ""
 PROMPT_EXPANSION_NAME = "Prompt Expansion"
-DEFAULT_STYLE = "Enhance"
+DEFAULT_STYLE = "Prompt Expansion"
 prompt_expansion = None
 
 
@@ -55,12 +55,12 @@ def getStyles():
     json_data = get_json_content(json_path)
     styles = read_sdxl_styles(json_data)
     
-    # # Move the PROMPT_EXPANSION_NAME to the top
-    # try:
-    #     styles.remove(PROMPT_EXPANSION_NAME)
-    # except ValueError:
-    #     pass
-    # styles.insert(0, PROMPT_EXPANSION_NAME)
+    # Move the PROMPT_EXPANSION_NAME to the top
+    try:
+        styles.remove(PROMPT_EXPANSION_NAME)
+    except ValueError:
+        pass
+    styles.insert(0, PROMPT_EXPANSION_NAME)
     return styles
 
 
@@ -142,7 +142,7 @@ class StyleSelectorXL(scripts.Script):
         return scripts.AlwaysVisible
 
     def ui(self, is_img2img):
-        enabled = getattr(shared.opts, "enable_styleselector_by_default", True)
+        enabled = getattr(shared.opts, "enable_styleselector_by_default", True) and not is_img2img
         with gr.Group():
             with gr.Accordion("SDXL Styles", open=enabled):
                 with FormRow():
