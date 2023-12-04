@@ -1,7 +1,7 @@
 import contextlib
 
 import gradio as gr
-from modules import scripts, shared, script_callbacks
+from modules import scripts, shared, script_callbacks, extra_networks
 from modules.ui_components import FormRow, FormColumn, FormGroup, ToolButton
 import json
 import os
@@ -69,7 +69,11 @@ def createPositive(style, positive, seed=None):
         global prompt_expansion
         if prompt_expansion is None:
             prompt_expansion = FooocusExpansion()
-        return prompt_expansion(positive, seed)
+        prompt, extras_dict = extra_networks.parse_prompt(positive)
+        positive = prompt_expansion(prompt, seed)
+        for extras in extras_dict.values():
+            positive += "".join(getattr(x, "origin", "") for x in extras)
+        return positive
     
     json_data = get_json_content(stylespath)
     try:
@@ -142,7 +146,7 @@ class StyleSelectorXL(scripts.Script):
         return scripts.AlwaysVisible
 
     def ui(self, is_img2img):
-        enabled = getattr(shared.opts, "enable_styleselector_by_default", True) and not is_img2img
+        enabled = getattr(shared.opts, "enable_styleselector_by_default", True)
         with gr.Group():
             with gr.Accordion("SDXL Styles", open=enabled):
                 with FormRow():
