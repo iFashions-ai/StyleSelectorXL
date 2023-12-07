@@ -153,10 +153,10 @@ class StyleSelectorXL(scripts.Script):
                     with FormColumn(min_width=160):
                         is_enabled = gr.Checkbox(
                             value=enabled, label="Enable Style Selector", info="Enable Or Disable Style Selector ")
-                    with FormColumn(elem_id="Randomize Style"):
+                    with FormColumn(elem_id="Randomize Style", visible=False):
                         randomize = gr.Checkbox(
                             value=False, label="Randomize Style", info="This Will Override Selected Style")
-                    with FormColumn(elem_id="Randomize For Each Iteration"):
+                    with FormColumn(elem_id="Randomize For Each Iteration", visible=False):
                         randomizeEach = gr.Checkbox(
                             value=False, label="Randomize For Each Iteration", info="Every prompt in Batch Will Have Random Style")
 
